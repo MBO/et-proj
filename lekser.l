@@ -9,18 +9,22 @@ _DIGIT [0-9]
 _ODIGIT [0-7]
 _XDIGIT [0-9a-fA-F]
 
+%x CLASS
+
 %%
 
 \| return OR;
 \( return LPARENT;
 \) return RPARENT;
-\[\^ return LBRACKET_NEG;
-\[ return LBRACKET;
-\] return RBRACKET;
+"\[\^" BEGIN(CLASS); return LBRACKET_NEG;
+"\["   BEGIN(CLASS); return LBRACKET;
+<CLASS>"\]" BEGIN(INITIAL); return RBRACKET;
+<CLASS>- return CLASS_RANGE;
+<CLASS>. return CHAR;
 
 \n return *yytext;
 
-\\0[0-3]{_ODIGIT}{2} return ONUMBER;
+\\0([0-3]?{_ODIGIT}{2}|{_ODIGIT}{1,2}) return ONUMBER;
 \\x{_XDIGIT}{4} return XNUMBER;
 
 \\d|\\D|\\s|\\S|\\w|\\W return CHAR_CLASS_PRED;

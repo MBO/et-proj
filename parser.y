@@ -17,6 +17,7 @@ void yyerror(char const*);
 %token CHAR_CLASS_PRED
 %token SPECIAL_CHAR
 %token MULTI
+%token CLASS_RANGE
 
 %token BOL EOL
 %token DOT
@@ -63,7 +64,7 @@ ordinary_atom
     | XNUMBER
     | ONUMBER
     | CHAR
-    | character_class
+    | class
     ;
 
 metacharacter
@@ -74,26 +75,24 @@ metacharacter
     | BACKREF
     ;
 
-character_class
+class
     : CHAR_CLASS_PRED
-    | LBRACKET character_class_first_char sth RBRACKET
-    | LBRACKET_NEG character_class_first_char sth RBRACKET
+    | LBRACKET class_body RBRACKET
+    | LBRACKET_NEG class_body RBRACKET
     ;
 
-character_class_first_char
+class_first_char
     :
-    | '-'
-    | RBRACKET
+//    | '-'
+//    | RBRACKET
     ;
-sth
-    : sth character_class_char
-    | sth character_class_char '-' character_class_char
-    | character_class_char
-    | character_class_char '-' character_class_char
+class_body
+    : class_char
+    | class_char CLASS_RANGE class_char
     ;
 
 // TODO przerobiæ w *.l na oddzielny stan!!!
-character_class_char
+class_char
     : CHAR
     ;
 
@@ -101,12 +100,14 @@ character_class_char
 
 int main(int ac, char** av)
 {
+    if (ac > 1) {
+        yydebug = 1;
+    }
     return yyparse();
 }
 
 void yyerror(char const *s)
 {
-    yydebug = 1;
     fprintf(stderr, "%s\n", s);
 }
 
