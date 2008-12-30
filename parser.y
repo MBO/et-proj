@@ -89,9 +89,10 @@ class_first_char
 class_body
     : class_char
     | class_char CLASS_RANGE class_char
+    | class_body class_char
+    | class_body class_char CLASS_RANGE class_char
     ;
 
-// TODO przerobiæ w *.l na oddzielny stan!!!
 class_char
     : CHAR
     ;

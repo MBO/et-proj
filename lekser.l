@@ -9,6 +9,7 @@ _DIGIT [0-9]
 _ODIGIT [0-7]
 _XDIGIT [0-9a-fA-F]
 
+%x CLASS1ST
 %x CLASS
 
 %%
