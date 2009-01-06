@@ -8,6 +8,10 @@ void yyerror(char const*);
 
 %debug
 %verbose
+// wykorzystanie parsera GLR, ze wzlêdu na problemy z parsowanie '[a-]'
+// w tym miejscu wystêpuje konflikt s/r, ale poprawne rozwi¹zanie jest
+// widoczne dopiero po 2 znakach od 'a', a LALR(1) tak daleko nie zagl¹da
+%glr-parser
 
 %token OR LPARENT RPARENT LBRACKET LBRACKET_NEG RBRACKET LBRACKET_COLLON RBRACKET_COLLON
 
@@ -80,8 +84,23 @@ bracket_expr
     | LBRACKET_NEG bracket_list RBRACKET
     ;
 bracket_list
-    : follow_list
-    | follow_list RANGE
+    : opt_follow_list1 follow_list opt_follow_list2
+    ;
+opt_follow_list1
+    :
+    | RANGE
+    | range_expression1
+    ;
+opt_follow_list2
+    :
+    | RANGE
+    | range_expression2
+    ;
+range_expression1
+    : RANGE RANGE range_char
+    ;
+range_expression2
+    : range_char RANGE RANGE
     ;
 follow_list
     : expression_term
@@ -92,25 +111,19 @@ expression_term
     | range_expression
     ;
 single_expression
-    : end_range
+    : range_char
     | character_class
     ;
 range_expression
-    : start_range end_range
-    | start_range RANGE
-    ;
-start_range
-    : end_range RANGE
-    ;
-end_range
-    : range_char
+    : range_char RANGE range_char
     ;
 range_char
     : CHAR
+    | SPECIAL_CHAR
     ;
-
 character_class
     : LBRACKET_COLLON CHAR_CLASS RBRACKET_COLLON
+    | CHAR_CLASS_PRED
     ;
 %%
 
