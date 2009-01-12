@@ -442,5 +442,30 @@ public:
         }
     }
 };
+class AnchorNode : public Node
+{
+private:
+    int character;
+public:
+    AnchorNode(int ch) : character(ch) {}
+    void print(int offset) {
+        shift(offset);
+        switch (character) {
+            case '^':
+                std::cout << "Dopasowanie na poczatku linii";
+                break;
+            case '$':
+                std::cout << "Dopasowanie na koncu linii";
+                break;
+            case 'b':
+                std::cout << "Dopasowanie na granicy slowa";
+                break;
+            case 'B':
+                std::cout << "Dopasowanie poza granica slowa";
+                break;
+        }
+        std::cout << "\n";
+    }
+};
 
 #endif /* AST_H */

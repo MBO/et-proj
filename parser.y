@@ -31,7 +31,7 @@ typedef struct {
 %token OR LPAREN RPAREN LBRACKET LBRACKET_NEG RBRACKET LBRACKET_COLLON RBRACKET_COLLON
 %token XNUMBER ONUMBER
 %token CHAR CHAR_CLASS_PRED CHAR_CLASS SPECIAL_CHAR RANGE BACKREF
-%token MULTI DOT BOL EOL
+%token MULTI DOT ANCHOR
 
 %type <N> pattern branch piece atom ordinary_atom metacharacter
 %type <N> bracket_expr bracket_list follow_list
@@ -84,8 +84,7 @@ ordinary_atom
     ;
 
 metacharacter
-    : BOL { $$ = new Node("dopasowanie na poczatku linii"); }
-    | EOL { $$ = new Node("dopasowanie na koncu linii"); }
+    : ANCHOR { $$ = new AnchorNode($<num>1); }
     | DOT { $$ = new Node("dowolny znak"); }
     | SPECIAL_CHAR { $$ = new SpecialCharNode($<num>1); }
     | BACKREF { $$ = new BackrefNode($<num>1); }

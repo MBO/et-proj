@@ -80,11 +80,13 @@ _WORD [a-zA-Z]
     BEGIN(BE);
     return RBRACKET_COLLON;
     }
-<CLASS>{_WORD}+ {
+<CLASS>{
+{_WORD}+ {
     step();
     // ???
     return CHAR_CLASS;
     }
+}
 
 \\0([0-3]?{_ODIGIT}{2}|{_ODIGIT}{1,2}) {
     step();
@@ -117,13 +119,15 @@ _WORD [a-zA-Z]
     return BACKREF;
     }
 
-\^ {
+\^|\$ {
     step();
-    return BOL;
+    yylval.num = yytext[0];
+    return ANCHOR;
     }
-\$ {
+\\b|\\B {
     step();
-    return EOL;
+    yylval.num = yytext[1];
+    return ANCHOR;
     }
 \. {
     step();
