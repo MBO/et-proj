@@ -57,7 +57,7 @@ _WORD [a-zA-Z]
 <BE1ST>"\]" {
     step();
     BEGIN(BE);
-    yylval.character = yytext[0];
+    yylval.num = yytext[0];
     return CHAR;
     }
 <BE>"\]" {
@@ -172,23 +172,23 @@ _WORD [a-zA-Z]
     }
 \\d|\\D|\\s|\\S|\\w|\\W {
     step();
-    yylval.character = yytext[1];
+    yylval.num = yytext[1];
     return CHAR_CLASS_PRED;
     }
 \\a|\\f|\\n|\\r|\\t|\\v {
     step();
-    yylval.character = yytext[1];
+    yylval.num = yytext[1];
     return SPECIAL_CHAR;
     }
 
 \\\. {
     step();
-    yylval.character = yytext[1];
+    yylval.num = yytext[1];
     return CHAR;
     }
 . {
     step();
-    yylval.character = yytext[0];
+    yylval.num = yytext[0];
     return CHAR;
     }
 }

@@ -15,11 +15,9 @@ typedef struct {
 
 %union {
     range r;
-    int character;
-    int character_class_id;
     int num;
-    Node* n;
-    CharacterNode* chn;
+    Node* N;
+    CharacterNode* ChN;
 }
 
 %locations
@@ -35,12 +33,12 @@ typedef struct {
 %token CHAR CHAR_CLASS_PRED CHAR_CLASS SPECIAL_CHAR RANGE BACKREF
 %token MULTI DOT BOL EOL
 
-%type <n> pattern branch piece atom ordinary_atom metacharacter
-%type <n> bracket_expr bracket_list follow_list
-%type <n> opt_follow_list1 opt_follow_list2 range_expression1 range_expression2
-%type <n> range_expression single_expression expression_term
-%type <n> character_class
-%type <chn> range_char
+%type <N> pattern branch piece atom ordinary_atom metacharacter
+%type <N> bracket_expr bracket_list follow_list
+%type <N> opt_follow_list1 opt_follow_list2 range_expression1 range_expression2
+%type <N> range_expression single_expression expression_term
+%type <N> character_class
+%type <ChN> range_char
 
 %%
 
@@ -80,8 +78,8 @@ ordinary_atom
     : metacharacter { $$ = $$; }
     | XNUMBER { $$ = new HexCharNode($<num>1); }
     | ONUMBER { $$ = new OctCharNode($<num>1); }
-    | CHAR { $$ = new CharacterNode($<character>1); }
-    | CHAR_CLASS_PRED { $$ = new PredClassNode($<character>1); }
+    | CHAR { $$ = new CharacterNode($<num>1); }
+    | CHAR_CLASS_PRED { $$ = new PredClassNode($<num>1); }
     | bracket_expr { $$ = $1; }
     ;
 
@@ -89,7 +87,7 @@ metacharacter
     : BOL { $$ = new Node("dopasowanie na poczatku linii"); }
     | EOL { $$ = new Node("dopasowanie na koncu linii"); }
     | DOT { $$ = new Node("dowolny znak"); }
-    | SPECIAL_CHAR { $$ = new SpecialCharNode($<character>1); }
+    | SPECIAL_CHAR { $$ = new SpecialCharNode($<num>1); }
     | BACKREF { $$ = new BackrefNode($<num>1); }
     ;
 
@@ -132,10 +130,10 @@ range_expression
     : range_char RANGE range_char { $$ = new RangeNode($1, $3); }
     ;
 range_char
-    : CHAR { $$ = new CharacterNode($<character>1); }
-    | XNUMBER { $$ = new HexCharNode($<character>1); }
-    | ONUMBER { $$ = new OctCharNode($<character>1); }
-    | SPECIAL_CHAR { $$ = new SpecialCharNode($<character>1); }
+    : CHAR { $$ = new CharacterNode($<num>1); }
+    | XNUMBER { $$ = new HexCharNode($<num>1); }
+    | ONUMBER { $$ = new OctCharNode($<num>1); }
+    | SPECIAL_CHAR { $$ = new SpecialCharNode($<num>1); }
     ;
 character_class
     : LBRACKET_COLLON CHAR_CLASS RBRACKET_COLLON { $$ = new Node("Character Class"); }
