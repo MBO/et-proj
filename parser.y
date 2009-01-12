@@ -135,8 +135,7 @@ range_char
     | SPECIAL_CHAR { $$ = new SpecialCharNode($<num>1); }
     ;
 character_class
-    : LBRACKET_COLLON CHAR_CLASS RBRACKET_COLLON { $$ = new Node("Character Class"); }
-    | CHAR_CLASS_PRED { $$ = new Node("Character Class"); }
+    : CHAR_CLASS_PRED { $$ = new PresClassNode($<num>1); }
     ;
 %%
 

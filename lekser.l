@@ -70,24 +70,6 @@ _WORD [a-zA-Z]
     return RANGE;
     }
 
-<BE>"\[:" {
-    step();
-    BEGIN(CLASS);
-    return LBRACKET_COLLON;
-    }
-<CLASS>":\]" {
-    step();
-    BEGIN(BE);
-    return RBRACKET_COLLON;
-    }
-<CLASS>{
-{_WORD}+ {
-    step();
-    // ???
-    return CHAR_CLASS;
-    }
-}
-
 \\0([0-3]?{_ODIGIT}{2}|{_ODIGIT}{1,2}) {
     step();
     int num = 0;
