@@ -30,41 +30,17 @@ typedef struct {
 // widoczne dopiero po 2 znakach od 'a', a LALR(1) tak daleko nie zagląda
 %glr-parser
 
-%token OR
-%token LPAREN RPAREN LBRACKET LBRACKET_NEG RBRACKET LBRACKET_COLLON RBRACKET_COLLON
+%token OR LPAREN RPAREN LBRACKET LBRACKET_NEG RBRACKET LBRACKET_COLLON RBRACKET_COLLON
+%token XNUMBER ONUMBER
+%token CHAR CHAR_CLASS_PRED CHAR_CLASS SPECIAL_CHAR RANGE BACKREF
+%token MULTI DOT BOL EOL
 
-%token XNUMBER
-%token ONUMBER
-%token CHAR_CLASS_PRED CHAR_CLASS
-%token SPECIAL_CHAR
-%token MULTI
-%token RANGE
-
-%token BOL EOL
-%token DOT
-%token BACKREF
-
-%token CHAR
-
-
-%type <n> pattern
-%type <n> branch
-%type <n> piece
-%type <n> atom
-%type <n> ordinary_atom
-%type <n> metacharacter
-%type <n> bracket_expr
-%type <n> bracket_list
-%type <n> opt_follow_list1
-%type <n> opt_follow_list2
-%type <n> range_expression1
-%type <n> range_expression2
-%type <n> follow_list
-%type <chn> range_char
-%type <n> range_expression
-%type <n> single_expression
-%type <n> expression_term
+%type <n> pattern branch piece atom ordinary_atom metacharacter
+%type <n> bracket_expr bracket_list follow_list
+%type <n> opt_follow_list1 opt_follow_list2 range_expression1 range_expression2
+%type <n> range_expression single_expression expression_term
 %type <n> character_class
+%type <chn> range_char
 
 %%
 
