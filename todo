@@ -1,0 +1,7 @@
+Do zrobienia zostalo:
+- sprawdzanie danych typu: czy zakresy sa od mniejszy-wiekszy, poprawny
+  kod znaku unicode/oct
+- dodanie klas znakowych, np. [:num:]
+- uporzadkowanie stalych napisowych (teraz wyswietlane sa po znaku,
+  wypadaloby zrobic zeby zwykle znaki laczyly sie w 1 wezel, dzieki
+  czemu wyswietlaloby sie to jako napis, nie pojedyncze znaki
