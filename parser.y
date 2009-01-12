@@ -1,19 +1,37 @@
 
 %{
 #include <stdio.h>
+#include "ast.h"
+
 int yylex(void);
 void yyerror(char const*);
 
+typedef struct {
+    int min;
+    int max;
+} range;
+
 %}
 
+%union {
+    range r;
+    int character;
+    int character_class_id;
+    int num;
+    Node* n;
+    CharacterNode* chn;
+}
+
+%locations
 %debug
 %verbose
-// wykorzystanie parsera GLR, ze wzlêdu na problemy z parsowanie '[a-]'
-// w tym miejscu wystêpuje konflikt s/r, ale poprawne rozwi¹zanie jest
-// widoczne dopiero po 2 znakach od 'a', a LALR(1) tak daleko nie zagl¹da
+// wykorzystanie parsera GLR, ze wzlÄ™du na problemy z parsowanie '[a-]'
+// w tym miejscu wystÄ™puje konflikt s/r, ale poprawne rozwiÄ…zanie jest
+// widoczne dopiero po 2 znakach od 'a', a LALR(1) tak daleko nie zaglÄ…da
 %glr-parser
 
-%token OR LPARENT RPARENT LBRACKET LBRACKET_NEG RBRACKET LBRACKET_COLLON RBRACKET_COLLON
+%token OR
+%token LPAREN RPAREN LBRACKET LBRACKET_NEG RBRACKET LBRACKET_COLLON RBRACKET_COLLON
 
 %token XNUMBER
 %token ONUMBER
@@ -28,6 +46,26 @@ void yyerror(char const*);
 
 %token CHAR
 
+
+%type <n> pattern
+%type <n> branch
+%type <n> piece
+%type <n> atom
+%type <n> ordinary_atom
+%type <n> metacharacter
+%type <n> bracket_expr
+%type <n> bracket_list
+%type <n> opt_follow_list1
+%type <n> opt_follow_list2
+%type <n> range_expression1
+%type <n> range_expression2
+%type <n> follow_list
+%type <chn> range_char
+%type <n> range_expression
+%type <n> single_expression
+%type <n> expression_term
+%type <n> character_class
+
 %%
 
 prog
@@ -37,93 +75,95 @@ prog
 
 line
     : '\n'
-    | pattern '\n'
-    | error '\n'
+    | pattern '\n' { std::cout << "Wyrazenie\n"; $1->print(1); delete $1; std::cout << "\n"; }
+    | error '\n'   { yyerrok; }
     ;
 
-/* definicja regexpa za dokumentacj¹ VIM (:he pattern.txt) */
+/* definicja regexpa za dokumentacj? VIM (:he pattern.txt) */
 pattern
-    : branch
-    | pattern OR branch
+    : branch { $$ = new PatternNode($1); }
+    | pattern OR branch { $$ = $1->add($3); }
     ;
 
 branch
-    : piece
-    | branch piece
+    : piece { $$ = new BranchNode($1); }
+    | branch piece { $$ = $1->add($2); }
     ;
 
 piece
-    : atom
-    | atom MULTI
+    : atom { $$ = $1; }
+    | atom MULTI { $$ = new PieceNode($1, $<r>2.min, $<r>2.max); }
     ;
 
 atom
-    : ordinary_atom
-    | LPARENT pattern RPARENT
+    : ordinary_atom { $$ = $1; }
+    | LPAREN pattern RPAREN { $$ = new SubpatternNode($2); }
     ;
 
 ordinary_atom
-    : metacharacter
-    | XNUMBER
-    | ONUMBER
-    | CHAR
-    | CHAR_CLASS_PRED
-    | bracket_expr
+    : metacharacter { $$ = $$; }
+    | XNUMBER { $$ = new HexCharNode($<num>1); }
+    | ONUMBER { $$ = new OctCharNode($<num>1); }
+    | CHAR { $$ = new CharacterNode($<character>1); }
+    | CHAR_CLASS_PRED { $$ = new PredClassNode($<character>1); }
+    | bracket_expr { $$ = $1; }
     ;
 
 metacharacter
-    : BOL
-    | EOL
-    | DOT
-    | SPECIAL_CHAR
-    | BACKREF
+    : BOL { $$ = new Node("dopasowanie na poczatku linii"); }
+    | EOL { $$ = new Node("dopasowanie na koncu linii"); }
+    | DOT { $$ = new Node("dowolny znak"); }
+    | SPECIAL_CHAR { $$ = new SpecialCharNode($<character>1); }
+    | BACKREF { $$ = new BackrefNode($<num>1); }
     ;
 
 bracket_expr
-    : LBRACKET bracket_list RBRACKET
-    | LBRACKET_NEG bracket_list RBRACKET
+    : LBRACKET bracket_list RBRACKET { $$ = new BracketNode(0, $2); }
+    | LBRACKET_NEG bracket_list RBRACKET { $$ = new BracketNode(1, $2); }
     ;
 bracket_list
-    : opt_follow_list1 follow_list opt_follow_list2
+    : opt_follow_list1 follow_list opt_follow_list2 { $$ = new BracketListNode($1, $2, $3); }
     ;
 opt_follow_list1
-    :
-    | RANGE
-    | range_expression1
+    : { $$ = new EmptyNode(); }
+    | RANGE { $$ = new CharacterNode('-'); }
+    | range_expression1 { $$ = $1; }
     ;
 opt_follow_list2
-    :
-    | RANGE
-    | range_expression2
+    : { $$ = new EmptyNode(); }
+    | RANGE { $$ = new CharacterNode('-'); }
+    | range_expression2 { $$ = $1; }
     ;
 range_expression1
-    : RANGE RANGE range_char
+    : RANGE RANGE range_char { $$ = new RangeNode(new CharacterNode('-'), $3); }
     ;
 range_expression2
-    : range_char RANGE RANGE
+    : range_char RANGE RANGE { $$ = new RangeNode($1, new CharacterNode('-')); }
     ;
 follow_list
-    : expression_term
-    | follow_list expression_term
+    : expression_term { $$ = new FollowListNode($1); }
+    | follow_list expression_term { $$ = $1->add($2); }
     ;
 expression_term
-    : single_expression
-    | range_expression
+    : single_expression { $$ = $1; }
+    | range_expression { $$ = $1; }
     ;
 single_expression
-    : range_char
-    | character_class
+    : range_char { $$ = $1; }
+    | character_class { $$ = $1; }
     ;
 range_expression
-    : range_char RANGE range_char
+    : range_char RANGE range_char { $$ = new RangeNode($1, $3); }
     ;
 range_char
-    : CHAR
-    | SPECIAL_CHAR
+    : CHAR { $$ = new CharacterNode($<character>1); }
+    | XNUMBER { $$ = new HexCharNode($<character>1); }
+    | ONUMBER { $$ = new OctCharNode($<character>1); }
+    | SPECIAL_CHAR { $$ = new SpecialCharNode($<character>1); }
     ;
 character_class
-    : LBRACKET_COLLON CHAR_CLASS RBRACKET_COLLON
-    | CHAR_CLASS_PRED
+    : LBRACKET_COLLON CHAR_CLASS RBRACKET_COLLON { $$ = new Node("Character Class"); }
+    | CHAR_CLASS_PRED { $$ = new Node("Character Class"); }
     ;
 %%
 
@@ -137,6 +177,17 @@ int main(int ac, char** av)
 
 void yyerror(char const *s)
 {
-    fprintf(stderr, "%s\n", s);
+    if (yylloc.first_line != yylloc.last_line) {
+        fprintf(stderr, "[%d.%d-%d.%d]: %s\n",
+            yylloc.first_line, yylloc.first_column,
+            yylloc.last_line, yylloc.last_column,
+            s);
+    }
+    else {
+        fprintf(stderr, "[%d.%d-%d]: %s\n",
+            yylloc.first_line, yylloc.first_column,
+            yylloc.last_column,
+            s);
+    }
 }
 
